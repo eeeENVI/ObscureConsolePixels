@@ -1,2 +1,2 @@
-# Why-we-exist- ObscurePixels Project by eeeENVII
+# Why-we-exist- ObscurePixels Project by eeeENVI
 aive no 1dea wot 50 eva m8
