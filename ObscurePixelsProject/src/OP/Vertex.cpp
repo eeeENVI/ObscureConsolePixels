@@ -5,7 +5,7 @@ namespace op
     // Constructors
     Vertex::Vertex()
     {
-        // at the start, Vertexs are.. dead :c
+        // default Vertex
         char_value = ' ';
         fgColor = Color(255,255,255);
         bgColor = Color(0,0,0);
@@ -56,6 +56,21 @@ namespace op
     void Vertex::setPosition(const Vector2f v)
     {
         this->position = v;
+    }
+
+    void Vertex::setPosition(const float x,const float y)
+    {
+        this->position = Vector2f(x,y);
+    }
+
+    void Vertex::movePosition(const Vector2f v)
+    {
+        this->position += v;
+    }
+
+    void Vertex::movePosition(const float x,const float y)
+    {
+        this->position += Vector2f(x,y);;
     }
 
     void Vertex::setChar(const char ch)

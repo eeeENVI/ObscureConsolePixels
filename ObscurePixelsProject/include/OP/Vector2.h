@@ -2,6 +2,7 @@
 
 namespace op
 {
+    // Class to handle 2d vector math
     template <class T>
     class Vector2
     {
@@ -9,10 +10,11 @@ namespace op
         T x;
         T y;
 
+        // Constructors
         // Default
         Vector2() = default;
+
         // Full
-        // Constructors
         Vector2(T x, T y)
         {
             this->x = x;
@@ -44,14 +46,29 @@ namespace op
             return Vector2<T>(x + right.x,y + right.y);
         }
 
+        Vector2<T> operator+=(const Vector2<T>& right)
+        {
+            return *this + right;
+        }
+
         Vector2<T> operator-(const Vector2<T>& right)
         {
             return Vector2<T>(x - right.x,y - right.y);
         }
 
+        Vector2<T> operator-=(const Vector2<T>& right)
+        {
+            return *this - right;
+        }
+
         const Vector2<T> operator*(T right)
         {
             return Vector2<T>(x * right, y * right);
+        }
+
+        const Vector2<T> operator*=(T right)
+        {
+            return *this * right;
         }
 
         bool operator==(const Vector2<T>& right)

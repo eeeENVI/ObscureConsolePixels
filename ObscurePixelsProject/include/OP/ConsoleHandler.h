@@ -11,87 +11,94 @@ namespace op
 {   
     class Drawable;
 
-    // these are fine 
-    #define ESC "\033"
-    #define CSI ESC"["
-    #define CLEAR CSI "1;1H" CSI "2J" CSI "3J" CSI "0m"
-    #define HOME CSI "1000D" CSI "1000A"
+    // Core shortcuts
+    #define ESC "\033" 
+    #define CSI ESC"[" 
     #define RESET CSI "c"
 
-    //printf(CSI "?1049h"); // enter alternative buffer
-    //printf(CSI "?1049l"); // leave alternative buffer
+    // Cursor / Screen Manipulations
+    #define CLEAR CSI "1;1H" CSI "2J" CSI "3J" CSI "0m"
+    #define HOME CSI "1000D" CSI "1000A"
     #define HIDE_CURSOR CSI "?25l"	
 
-    // Colors
+    // Color Manipulations
     #define SGR_RES CSI"0m"
     #define FG CSI "38;2;"
     #define BG CSI "48;2;"
-    // too much ..?
 
-    // Klasa obsługująca konsole przy pomocy Console Sequence Introducer ( CSI ) kodow
+    // Class to handle ESC and CSI sequences
     class ConsoleHandler
     {
         private:
-        // Definition of our console printing region starting from left top corner
         friend class VertexArray;
 
-        unsigned _width,_height; //  y(columns), x(rows)
-        unsigned _framePerSecondRateLimit;
+        // Definition of our console printing region starting from left top corner
+        unsigned _width,_height; //  x,y
 
-        // view vector
-        Vector2i view; // Used as form of camera-vector 
+        // View vector
+        Vector2i view; // Used as form of camera-vector control
         
-        // Array of characters that can be displayed whenever we wants with whatever properties
+        // Just a pointer to Vertices array
         Vertex* Screen = nullptr;
-        char _defaultChar = ' ';
+        char _defaultChar;
         Color _defaultBgClear;
+        Color _defaultFgClear;
 
-        // External windows buffer
+        // Faster console buffer (in DEV)
+        char* ff_out = nullptr;
+        size_t f_buffer_size;
         bool fast_buffer;
 
-        //accessors 
-        bool _alt_buffer;
+        // Accessors 
+        bool _alt_buffer; 
         bool _open;
 
-        // Constructors / Destructors
+        // Constructors and Destructors
         public:
         ConsoleHandler(unsigned width,unsigned height,bool alt_buffer = false, bool fast_buffer = false);
         
         ~ConsoleHandler();
     
-        // accessors
+        // Accessors
         bool isOpen() const;
        
-        //setters
-        void setFramePerSecondRate(unsigned rate = 0);
+        // Setters
 
+        // manipulate ViewPort
         void setView(Vector2i);
         void moveView(Vector2i);
         
-        // Functions
-        // Clear screen with aditional parameter that fills up it with color
+        // Main Functionality Loop (Clear the screen, write (draw) vertices to buffer, Display them (write to console))
+
+        // Clear screen with aditional parameter that fills it up with color
         void clear(const Color bg = Color(0,0,0));
 
-        void draw(); // Alternative 0
+        void draw(); // draws nothing
 
-        void draw(const Drawable& drawable); // Main option
+        void draw(const Drawable& drawable); // Main option used to draw custom Drawable objects
 
-        void draw(const Vertex* vertices, unsigned count_vertices); // Alternative 2
+        //void draw(const Vertex* vertices, unsigned count_vertices); // Alternative used to directy draw array of vertices
 
-        void display();
+        void display(); // Displays Characters to screen
 
         private:
         // Inits
         void initScreen();
-        
         void initScreenStatus();
-
 
         // Setters
         void setDefaultPrintingMode();
        
-        // Most important drawer
+        // prepare FastBuffer (ff_out)
+        void FormatFastBuffer(const char c,const Color fg = Color(255,255,255),const Color bg = Color(0,0,0));
+
+        // adds nextline to FastBuffer when hits new row
+        void FormatFastBufferNextLine(size_t row_counter);
+
+        // Write whole buffer to stdin instantaneously and then clears it
+        void WriteFastBuffer();
+
+        // Basic drawer ( old version )
         void printCh(const char c,const Color fg = Color(255,255,255),const Color bg = Color(0,0,0));
-        
     }; 
 } // namespace op

@@ -4,7 +4,7 @@
 
 namespace op
 {
-    // Klasa upraszczajaca korzystanie z chrono
+    // Class to handle <chrono> more easily
     class Clock
     {   
         typedef std::chrono::time_point<std::chrono::steady_clock> chrono_time_t;
@@ -13,7 +13,7 @@ namespace op
         chrono_time_t _start;
 
         public:
-        // Init Close Run    
+        // Init Clock Run    
         Clock();
 
         // Restarts Clock
@@ -21,7 +21,6 @@ namespace op
 
         // Return ElapsedTime in seconds cause Clock has seconds ratio
         double getElapsedTime();
-        
     };
 
 } // namespace op

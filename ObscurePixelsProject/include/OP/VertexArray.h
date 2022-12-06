@@ -3,17 +3,19 @@
 #include <vector>
 #include "Vertex.h"
 #include "Drawable.h"
-#include "PrimitiveType.h"
+#include "Utility.h"
 #include "ConsoleHandler.h"
 
 namespace op
 {
+    // Basic class to handle VertexArrays together (it's drawable to screen)
     class VertexArray : public Drawable
     {
         private:
         std::vector<Vertex> _vertices;
         PrimitiveType _primitive_type;
 
+        // Inherited from Drawable
         private:
         virtual void draw(RenderTarget& target) const;
 
@@ -23,7 +25,7 @@ namespace op
 
         VertexArray(PrimitiveType type, unsigned count_vertices);
 
-        // Functions
+        // Main Functions
         void append(const Vertex& vertex);
         
         void resize(unsigned vertexCount);
@@ -35,13 +37,15 @@ namespace op
         
         const Vertex& operator [](std::size_t index) const;
     
-        //setters
+        // Setters
         void setPrimitiveType(PrimitiveType type);
         
-        //getters
+        // Getters
         PrimitiveType getPrimitiveType() const;
        
         unsigned getVertexCount() const;
+
+        FloatRect getBounds() const;
        
     };
 } // namespace op

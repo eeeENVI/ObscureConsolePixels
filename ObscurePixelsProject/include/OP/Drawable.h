@@ -2,9 +2,11 @@
 
 namespace op
 {
+    // ConsoleHandler will change name in future propably
     class ConsoleHandler;
     typedef ConsoleHandler RenderTarget;
 
+    // Class of Drawable objects (method draw)
     class Drawable
     {
         public:
