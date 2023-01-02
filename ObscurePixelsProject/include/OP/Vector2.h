@@ -48,7 +48,10 @@ namespace op
 
         Vector2<T> operator+=(const Vector2<T>& right)
         {
-            return *this + right;
+            this->x += right.x;
+            this->y += right.y;
+
+            return *this;
         }
 
         Vector2<T> operator-(const Vector2<T>& right)
@@ -58,17 +61,23 @@ namespace op
 
         Vector2<T> operator-=(const Vector2<T>& right)
         {
-            return *this - right;
+            this->x -= right.x;
+            this->y -= right.y;
+            
+            return *this;
         }
 
-        const Vector2<T> operator*(T right)
+        Vector2<T> operator*(const T& right)
         {
             return Vector2<T>(x * right, y * right);
         }
 
-        const Vector2<T> operator*=(T right)
+        Vector2<T> operator*=(const T& right)
         {
-            return *this * right;
+            this->x *= right;
+            this->y *= right;
+
+            return *this;
         }
 
         bool operator==(const Vector2<T>& right)

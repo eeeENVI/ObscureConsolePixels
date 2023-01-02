@@ -6,6 +6,11 @@ namespace op
 {
     class Color
     {
+
+        private:
+         // returns unique value to rgb color
+        size_t getUniqueValue() const;
+        
         protected:
         // Technically its 255 cause uint8_t but just use it this way < MAX_VALUE (easier with maths)
         static const unsigned MAX_VALUE = 256;
@@ -25,13 +30,12 @@ namespace op
         // Copy Constructor Color new(Other Color)
         Color(const Color& c1);        
 
-        // Idk what to do with this but it might come in handy
-        size_t getUniqueValue();
-
-        // IN DEV
-        // returns format r;g;bm (CSI functionality)
-
         const Color& operator =(const Color&);
+
+        bool operator==(const Color&) const;
+       
+        bool operator!=(const Color&) const;
+       
     };
 
     // Alias to Color cause it uses RGB scheme

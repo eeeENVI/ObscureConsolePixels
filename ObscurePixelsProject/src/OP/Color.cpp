@@ -21,14 +21,10 @@ namespace op
         b = c.b;
     }
 
-    size_t Color::getUniqueValue()
+    size_t Color::getUniqueValue() const
     {
         return (r * MAX_VALUE * MAX_VALUE) + ( g * MAX_VALUE) + (b);
     }
-
-    // in DEV
-    // returns format r;g;bm (CSI functionality)
-   
 
     const Color& Color::operator =(const Color& c)
     {
@@ -39,4 +35,14 @@ namespace op
         return *this;
     }
 
+    bool Color::operator==(const Color& obj) const
+    {
+        return getUniqueValue() == obj.getUniqueValue();
+    }
+
+    bool Color::operator!=(const Color& obj) const
+    {
+        return getUniqueValue() != obj.getUniqueValue();
+    }
+    
 } // namespace op

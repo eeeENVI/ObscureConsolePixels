@@ -1,1 +1,1 @@
-g++ ./src/OP/*.cpp main.cpp -o output
+g++ -O3 ./src/OP/*.cpp main.cpp -o output

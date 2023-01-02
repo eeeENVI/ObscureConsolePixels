@@ -1,6 +1,7 @@
 #include "include/OP/ConsoleHandler.h"
 #include "include/OP/Clock.h"
 #include <time.h>
+#include <iostream>
 
 using namespace op;
 
@@ -10,60 +11,50 @@ int main()
     
     Color c(255,0,0);
     
-    ConsoleHandler console(100,50,0,1);
+    int size_x = 30;
+    int size_y = 130;
+
+    char def = ' ';
+
+    ConsoleHandler console(size_x, size_y,0);
 
     Clock clock;
 
     double dt = 0.0;
 
-    std::vector<VertexArray> rectangles;
-
     VertexArray rect;
-    rect.resize(8);
+    rect.resize(size_x*size_y);
 
-     for(int i = 0; i < 4;i++)
-                for(int j = 0; j < 2;j++)
-                {
-                    rect[j + i * 2].bgColor = Color(rand()%128 + 128,rand()%128 + 128,rand()%128 + 128);
-                    rect[j + i * 2].fgColor = Color(rand()%128 + 128,rand()%128 + 128,rand()%128 + 128);
-                    rect[j + i * 2].setPosition(Vector2f(float(i+10),float(j+5)));
-                    rect[j + i * 2].setChar('#');   
-                }
+    for(int i = 0 ; i < size_x; ++i)
+        for(int j = 0; j < size_y;++j)
+        {
+            rect[j + i * size_y].setPosition(Vector2f(float(i),float(j)));  
 
-    for(int i =0;i<20;i++)  rectangles.push_back(rect);
-
-                
+            if(j + i * size_y <= (size_x*size_y)/3) rect[j + i * size_y].setBg(Color(rand()%224 + 32,32,32));
+            if(j + i * size_y >= (size_x*size_y)/3)  rect[j + i * size_y].setBg(Color(32,rand()%224 + 32,32));   
+            if(j + i * size_y >= (size_x*size_y)*2/3)  rect[j + i * size_y].setBg(Color(32,32,rand()%224 + 32));  
+        }
+             
+    double maxFps = 0.0;
+    double elapsedTime = 0.0;
     while(console.isOpen())
     {
         dt += clock.getElapsedTime();
 
-        if(dt > 5.0 / 360.0) 
+        // 0.25 ~ 1fps
+        if(dt > 0.25 / 60) 
         {
-            // update
-            for(int x = 0 ; x < 10; x ++)
-            {
-                int randx = x*4;
-                int randy = x+x;
-                for(int i = 0; i < 4;i++)
-                {
-                    for(int j = 0; j < 2;j++)
-                    {
-                        rectangles[x][j + i * 2].bgColor = Color(rand()%128 + 128,rand()%128 + 128,rand()%128 + 128);
-                        rectangles[x][j + i * 2].fgColor = Color(rand()%128 + 128,rand()%128 + 128,rand()%128 + 128);
-                        rectangles[x][j + i * 2].setPosition(float(randx+i),float(randy+j));
-                        rectangles[x][j + i * 2].setChar('#');   
-                    }
-                }
-            }
+            console.moveView(Vector2i(rand()%3 - 1,rand()%3 - 1));
 
-            console.clear();
-            for(int i = 0 ; i < 10; i ++)
-            {
-                console.draw(rectangles[i]);
-            }
+            console.clear();    
+            console.draw(rect);    
             console.display(); 
-            console.moveView(Vector2i(rand()%3 -1,rand()%3 - 1));
-         
+
+            /*elapsedTime = clock.getElapsedTime();
+            std::cout << "Time need to process buffer (" << size_x << " x " << size_y << ") in seconds: " << elapsedTime << "\nFPS: " << 1.0 / elapsedTime;
+            if(maxFps < 1.0 / elapsedTime) maxFps = 1.0 / elapsedTime;
+            std::cout << "\nMaxFps: " << maxFps << std::endl;*/
+   
             dt = 0;
         }
         clock.restart();

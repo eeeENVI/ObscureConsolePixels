@@ -12,37 +12,6 @@ namespace op
         resize(count_vertices);
     }
 
-    void VertexArray::draw(RenderTarget& target) const
-    {
-        if (!_vertices.empty())
-        {
-            //target.draw(*this); // endless loop?
-
-            // View offset
-            Vector2i v = target.view;
-
-            int width = target._width;
-            int height = target._height;
-        
-            for(int i = 0; i < getVertexCount(); i++)
-            {
-                // Casts Float position of vertex to Integer cause of screen
-                // and substracts from it view offset
-                int x = static_cast<int> (_vertices[i].getPosition().x) - v.x;
-                int y = static_cast<int> (_vertices[i].getPosition().y) - v.y;
-
-                // Checks if it fits screen position;
-                if( x >= 0 && x < height && y >= 0 && y < width)
-                {
-                    // Saves Vertex to the ScreenBuffer
-                    target.Screen[y + x * width].setChar(_vertices[i].getChar());
-                    target.Screen[y + x * width].bgColor = _vertices[i].bgColor;
-                    target.Screen[y + x * width].fgColor = _vertices[i].fgColor;
-                }
-            }
-        }
-    }
-
     // Main Functions
     void VertexArray::append(const Vertex& vertex)
     {
@@ -76,6 +45,11 @@ namespace op
     unsigned VertexArray::getVertexCount() const
     {
         return _vertices.size();
+    }
+
+    bool VertexArray::isEmpty() const
+    {
+        return _vertices.empty();
     }
 
     // Returns bounds of Vertex array

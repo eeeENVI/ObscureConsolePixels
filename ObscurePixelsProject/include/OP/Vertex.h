@@ -8,13 +8,15 @@ namespace op
     class Vertex
     {
         private:
-        char char_value; // something like a.. texture? but it's character
+        
+        char char_value;  // something like a.. texture? but it's character
+        
+        Color fgColor;    // Texture color : foreground
+        Color bgColor;    // Pixel color : background
 
         Vector2f position; // position that might be casted to int when Screen Checks it
 
-        public:
-        Color fgColor; // Texture color : foreground
-        Color bgColor; // Pixel color : background
+        public:   
 
         //Setters
         void setPosition(const Vector2f v);
@@ -24,9 +26,13 @@ namespace op
         void movePosition(const float x,const float y);
 
         void setChar(const char ch);
+        void setFg(const Color c);
+        void setBg(const Color c);
 
         //Getters
         char getChar() const;
+        Color getFg() const;
+        Color getBg() const;
        
         Vector2f getPosition() const;
     
@@ -48,5 +54,10 @@ namespace op
        
         // Copy Constructor
         Vertex(const Vertex& p);
+
+        // Operators
+        bool operator==(const Vertex&) const;
+       
+        bool operator!=(const Vertex&) const;
     };
 } // namespace op

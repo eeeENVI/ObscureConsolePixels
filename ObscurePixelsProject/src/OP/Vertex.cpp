@@ -78,10 +78,30 @@ namespace op
         this->char_value = ch;
     }
 
+    void Vertex::setFg(const Color c)
+    {
+        this->fgColor = c;
+    }
+
+    void Vertex::setBg(const Color c)
+    {
+        this->bgColor = c;
+    }
+
     // Getters
     char Vertex::getChar() const
     {
         return char_value;
+    }
+
+    Color Vertex::getFg() const
+    {
+        return fgColor;
+    }
+
+    Color Vertex::getBg() const
+    {
+        return bgColor;
     }
 
     Vector2f Vertex::getPosition() const
@@ -89,5 +109,18 @@ namespace op
         return position; 
     }
     
+    // Operators
+
+    // Check for Vertices characteristics (ignore position)
+    bool Vertex::operator==(const Vertex& obj) const
+    {
+        return (fgColor == obj.fgColor && bgColor == obj.bgColor && char_value == obj.char_value);
+    }
+
+    bool Vertex::operator!=(const Vertex& obj) const
+    {
+        return (fgColor != obj.fgColor || bgColor != obj.bgColor || char_value != obj.char_value);
+    }
+
 } // namespace op
 
