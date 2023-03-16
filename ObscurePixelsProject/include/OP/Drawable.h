@@ -2,11 +2,10 @@
 
 namespace op
 {
-    // ConsoleHandler will change name in future propably
+    // ConsoleHandler will change name in future propably and RenderTarget will be new Class
     class ConsoleHandler;
-    typedef ConsoleHandler RenderTarget;
 
-    // Class of Drawable objects (method draw)
+    // Class of Drawable objects (method draw) to create ur own custom shapes and how to draw them
     class Drawable
     {
         public:
@@ -14,7 +13,7 @@ namespace op
 
         protected:
         friend class ConsoleHandler;
-        virtual void draw(RenderTarget& target) const = 0;
+        virtual void draw(ConsoleHandler& target) const = 0;
 
     };
     

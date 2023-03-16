@@ -2,14 +2,6 @@
 
 namespace op
 {
-    // IN DEV
-    enum PrimitiveType
-    {
-        Points,
-        Lines,
-        LineStrip
-    };
-
     // To getBounds of an object
     struct FloatRect
     {

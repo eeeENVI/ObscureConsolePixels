@@ -7,9 +7,12 @@ namespace op
         restart();
     }
 
-    void Clock::restart()
-    {
+    double Clock::restart()
+    {   
+        double elapsed = getElapsedTime();
         _start = std::chrono::steady_clock::now();
+
+        return elapsed;
     }
 
     double Clock::getElapsedTime()

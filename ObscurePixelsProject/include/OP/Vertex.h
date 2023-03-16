@@ -14,16 +14,13 @@ namespace op
         Color fgColor;    // Texture color : foreground
         Color bgColor;    // Pixel color : background
 
-        Vector2f position; // position that might be casted to int when Screen Checks it
+        Vector2i position; // position that might be casted to int when Screen Checks it
 
         public:   
 
         //Setters
-        void setPosition(const Vector2f v);
-        void setPosition(const float x,const float y);
-
-        void movePosition(const Vector2f v);
-        void movePosition(const float x,const float y);
+        void setPosition(const Vector2i v);
+        void movePosition(const Vector2i v);
 
         void setChar(const char ch);
         void setFg(const Color c);
@@ -34,28 +31,21 @@ namespace op
         Color getFg() const;
         Color getBg() const;
        
-        Vector2f getPosition() const;
+        Vector2i getPosition() const;
     
         // Constructors
         // Default
         Vertex();
 
         // Full constructor
-        Vertex(char ch, Color fg, Color bg, Vector2f v);
-        
-        // Char constructor
-        Vertex(char ch);
-           
-        // Colors constructor
-        Vertex(Color fg, Color bg);
-       
-        // Position Constructor
-        Vertex(Vector2f v);
-       
+        Vertex(char ch, Color fg, Color bg, Vector2i v);
+    
         // Copy Constructor
         Vertex(const Vertex& p);
 
         // Operators
+        Vertex& operator=(const Vertex&);
+
         bool operator==(const Vertex&) const;
        
         bool operator!=(const Vertex&) const;

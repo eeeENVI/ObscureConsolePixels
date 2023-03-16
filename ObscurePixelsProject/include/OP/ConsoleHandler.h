@@ -1,23 +1,19 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "Color.h"
-#include "Vertex.h"
 #include "VertexArray.h"
+#include "Clock.h"
 
 namespace op
 {   
     class Drawable;
-
     // Core shortcuts
     #define ESC "\033" 
     #define CSI ESC"[" 
     #define RESET CSI "c"
 
     // Cursor / Screen Manipulations
-    #define CLEAR CSI "1;1H" CSI "2J" CSI "3J" CSI "0m"
+    #define CLEAR CSI "1;H" CSI "2J" CSI "3J" CSI "0m"
     #define HOME CSI "1000D" CSI "1000A"
     #define HIDE_CURSOR CSI "?25l"	
     
@@ -26,51 +22,61 @@ namespace op
     #define FG CSI "38;2;"
     #define BG CSI "48;2;"
 
-    // Class to handle ESC and CSI sequences
-    class ConsoleHandler
+    // Class to handle ESC and CSI sequences to control consol output
+    class ConsoleHandler 
     {
         private:
-
+        friend class Drawable;
         // Definition of our console printing region starting from left top corner
         size_t _width,_height; //  x,y
 
         // View vector
         Vector2i view; // Used as form of camera-vector control
         
-        // Just a pointer to Vertices array
+        // Main Screen
         Vertex* Screen = nullptr;
-
-        //default "screen" vertex
-        char _defaultChar;
-        Color _defaultBgClear;
-        Color _defaultFgClear;
-
-        char* ff_out = nullptr;
-        size_t f_buffer_size;
-
-        // for debugging :) 
-        size_t f_buffer_size_debug;
-        size_t f_buffer_size_newlines_debug;
-
 
         // IN DEV
         char* lf_out = nullptr;
-        Vertex* lastFrame = nullptr;
+        char* lf_beg; // to save buffer beg position
+        char* lf_end; // to save buffer end position
 
-        // Accessors 
-        bool _alt_buffer; 
+        char* ff_out = nullptr;
+        char* ff_beg; // to save buffer beg position
+        char* ff_end; // to save buffer end position
+
+        // Internal Clock
+        Clock clock;
+        double dt;
+
+        // FpsLimiter
+        const double fps_const = 2.0;
+        double fps;
+        double fpsLock;
+
+        // for debugging :) 
+        size_t f_buffer_size_debug;
+
+        // Handler Registers
+        bool _altBuffer; 
         bool _open;
+        const char* DefaultPrintingMode;
 
         // Constructors and Destructors
+
+        // creates console screen handler width,height,alternative_buffer
         public:
-        ConsoleHandler(unsigned width,unsigned height,bool alt_buffer = false);
+        ConsoleHandler(unsigned width,unsigned height,double fpsLimit = 0,bool alt_buffer = false);
         
         ~ConsoleHandler();
     
         // Accessors
-        bool isOpen() const;
+
+        bool isOpen();
        
         // Setters
+
+        void setFramerateLimit(size_t num);
 
         // manipulate ViewPort
         void setView(Vector2i);
@@ -82,9 +88,8 @@ namespace op
         Vector2i getView();
         
         // Main Functionality Loop (Clear the screen, write (draw) vertices to buffer, Display them (write to console))
-
         // Clear screen with aditional parameter that fills it up with color
-        void clear(const Color bg = Color(0,0,0));
+        void clear(const Color& bg = Color(0,0,0));
 
         void draw(); // draws nothing
 
@@ -95,6 +100,9 @@ namespace op
         void draw(const Vertex* vertices, unsigned count_vertices); // Alternative use to directy draw array of vertices
 
         void display(); // Displays Characters to screen
+        // ~ Render Target Class end 
+
+        void close(); // to forcefully close console handler
 
         private:
         // Inits
@@ -104,18 +112,14 @@ namespace op
         // Setters
         void setDefaultPrintingMode();
 
-        // Accessors / Getters
-
         // Buffer operations
         // prepare FastBuffer (ff_out)
-        void FormatFastBuffer(const char c,const Color fg = Color(255,255,255),const Color bg = Color(0,0,0),short optimize_code = 0);
-
-        // adds nextline to FastBuffer when hits new row
-        void FormatFastBufferNextLine(size_t row_counter);
-
-        // Write whole buffer to stdin instantaneously and then clears it
+        void fastFormatter(size_t row);
+ 
+        // Format & Write whole buffer with nextline to stdin instantaneously
         void WriteFastBuffer();
 
+        // just debugging tool
         void debugFastBuffer();
     }; 
 } // namespace op

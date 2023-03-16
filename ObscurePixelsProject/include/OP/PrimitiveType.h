@@ -4,8 +4,10 @@ namespace op
 {
     enum PrimitiveType
     {
-        Points,
-        Lines,
-        LineStrip
+        Point,
+        Line,
+        Triangle,
+        Rectangle,
+        Circle
     };
 } // namespace op

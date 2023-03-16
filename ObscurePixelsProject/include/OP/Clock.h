@@ -16,8 +16,8 @@ namespace op
         // Init Clock Run    
         Clock();
 
-        // Restarts Clock
-        void restart();
+        // Returns ElapsedTime and Restarts Clock timer 
+        double restart();
 
         // Return ElapsedTime in seconds cause Clock has seconds ratio
         double getElapsedTime();

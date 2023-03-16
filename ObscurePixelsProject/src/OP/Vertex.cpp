@@ -9,38 +9,14 @@ namespace op
         char_value = ' ';
         fgColor = Color(255,255,255);
         bgColor = Color(0,0,0);
-        position = Vector2f(0.0f,0.0f);
+        position = Vector2i(0.0f,0.0f);
     }
 
-    Vertex::Vertex(char ch, Color fg, Color bg, Vector2f v)
+    Vertex::Vertex(char ch, Color fg, Color bg, Vector2i v)
     {
         char_value = ch;
         fgColor = fg;
         bgColor = bg;
-        position = v;
-    }
-
-    Vertex::Vertex(char ch)
-    {
-        char_value = ch;
-        fgColor = Color(255,255,255);
-        bgColor = Color(0,0,0);
-        position = Vector2f(0.0f,0.0f);
-    }
-
-    Vertex::Vertex::Vertex(Color fg, Color bg)
-    {
-        char_value = ' ';
-        fgColor = fg;
-        bgColor = bg;
-        position = Vector2f(0.0f,0.0f);
-    }
-
-    Vertex::Vertex(Vector2f v)
-    {
-        char_value = ' ';
-        fgColor = Color(255,255,255);
-        bgColor = Color(0,0,0);
         position = v;
     }
 
@@ -53,24 +29,14 @@ namespace op
     }
 
     // Setters
-    void Vertex::setPosition(const Vector2f v)
+    void Vertex::setPosition(const Vector2i v)
     {
         this->position = v;
     }
 
-    void Vertex::setPosition(const float x,const float y)
-    {
-        this->position = Vector2f(x,y);
-    }
-
-    void Vertex::movePosition(const Vector2f v)
+    void Vertex::movePosition(const Vector2i v)
     {
         this->position += v;
-    }
-
-    void Vertex::movePosition(const float x,const float y)
-    {
-        this->position += Vector2f(x,y);;
     }
 
     void Vertex::setChar(const char ch)
@@ -104,22 +70,31 @@ namespace op
         return bgColor;
     }
 
-    Vector2f Vertex::getPosition() const
+    Vector2i Vertex::getPosition() const
     {
         return position; 
     }
     
     // Operators
+    Vertex& Vertex::operator=(const Vertex& obj)
+    {
+        this->char_value = obj.char_value;
+        this->fgColor = obj.fgColor;
+        this->bgColor = obj.bgColor;
+        this->position = obj.position;
+
+        return *this;
+    }
 
     // Check for Vertices characteristics (ignore position)
     bool Vertex::operator==(const Vertex& obj) const
     {
-        return (fgColor == obj.fgColor && bgColor == obj.bgColor && char_value == obj.char_value);
+        return (bgColor == obj.bgColor && fgColor == obj.fgColor && char_value == obj.char_value);
     }
 
     bool Vertex::operator!=(const Vertex& obj) const
     {
-        return (fgColor != obj.fgColor || bgColor != obj.bgColor || char_value != obj.char_value);
+        return (bgColor != obj.bgColor || fgColor != obj.fgColor || char_value != obj.char_value);
     }
 
 } // namespace op

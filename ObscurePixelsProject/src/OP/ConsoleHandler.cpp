@@ -1,17 +1,23 @@
 #include "../../include/OP/ConsoleHandler.h"
 #include "../../include/OP/Drawable.h"
+#include "../../include/OP/Core.h"
 
 #include <iostream>
 #include <cstring>
-
+#include <stdlib.h>
+#include <stdio.h>
 
 namespace op
 {
-    ConsoleHandler::ConsoleHandler(unsigned width,unsigned height,bool alt_buffer)
+    ConsoleHandler::ConsoleHandler(unsigned width,unsigned height,double fpsLimit, bool alt_buffer)
     {
         this->_width = width;
         this->_height = height;
-        this->_alt_buffer = alt_buffer;
+        
+        this->fps = fpsLimit * fps_const;
+        this->fpsLock = 1.0;
+
+        this->_altBuffer = alt_buffer;
 
         initScreenStatus();
         initScreen();
@@ -27,54 +33,71 @@ namespace op
         delete[] Screen;
         Screen = nullptr;
 
-        if(_alt_buffer) printf(CSI "?1049l"); // leave alternative buffer
+        if(_altBuffer) printf(CSI "?1049l"); // leave alternative buffer
     }
 
     //inits
-    void ConsoleHandler::initScreen()
-    {
-        _defaultChar = ' ';
-        _defaultBgClear = Color(0,0,0);
-        _defaultFgClear = Color(255,255,255);
-
-        view = Vector2i(0,0); 
-
-        Screen = new Vertex[_width * _height];
-
-        //lastFrame = new Vertex[_width * _height]; // IN DEV for new checking
-        //lf_out = new char[((_width * _height) * 40) + (_width * 10)]; // new place for it ( IN DEV) for new copying
-
-        ff_out = new char[(_height * 40) + 10]; // per row
-
-        for(unsigned x = 0; x < _width;++x) 
-        {
-            for(unsigned y = 0; y < _height;++y)
-            {
-                Screen[y + x * _height] =  Vertex(_defaultChar, _defaultFgClear, _defaultBgClear,Vector2f(float(x),float(y)));
-                //lastFrame[y + x * _height] = Screen[y + x * _height];
-            }
-        }
-    }
-
     void ConsoleHandler::initScreenStatus()
     {
         // Prepare terminal
-        if(_alt_buffer) printf(CSI "?1049h"); // enter alternative buffer
+        if(_altBuffer) printf(CSI "?1049h"); // enter alternative buffer
 
         printf(HIDE_CURSOR);
         printf(CLEAR);
 
         // settings of console handler
         _open = true;
+        DefaultPrintingMode = "\033[1;H\033[0m\0";
+    }
+
+    void ConsoleHandler::initScreen()
+    {
+        view = Vector2i(0,0); 
+
+        Screen = new Vertex[_width * _height];
+
+        // high memory cost higher buffer output efficiency
+        //lf_out = new char[((_width * _height) * 40) + (_width * 10) + 10]; // new place for it ( IN DEV) for new LARGE FAST copying
+
+        // low memory cost
+        ff_out = new char[(_height * 40) + 20]; // per row
+
+        for(size_t y = 0; y < _height;++y)    
+        {
+            for(size_t x = 0; x < _width;++x)
+            {
+                Screen[x + y * _width] =  Vertex();
+            }
+        }
     }
 
     // accessors
-    bool ConsoleHandler::isOpen() const
+    bool ConsoleHandler::isOpen()
     {
+        dt = clock.restart();
+
+        if(fps != 0)
+        {
+            fpsLock -= fps * dt; 
+            //fpser += fps * fps * dt; 
+
+            if(fpsLock > 0.0)
+            {
+                return isOpen();
+            }
+
+            fpsLock = 1.0;
+            //fpser = 0.0 ;
+        }
+        
         return _open;
     }
 
     // Setters
+    void ConsoleHandler::setFramerateLimit(size_t num)
+    {
+        fps = num * fps_const;
+    }
 
     void ConsoleHandler::setView(const Vector2i v)
     {
@@ -86,27 +109,31 @@ namespace op
         view += v;
     }
 
+    void ConsoleHandler::setDefaultPrintingMode()
+    {
+        //printf(CSI "1;H" SGR_RES);
+        fwrite(DefaultPrintingMode,sizeof(char),10,stdout);
+    }
+
     // Getters
 
     Vector2i ConsoleHandler::getView()
     {
         return view;
     }
-
-    void ConsoleHandler::setDefaultPrintingMode()
-    {
-        printf(CSI "1;1H" SGR_RES);
-    }
     
     // Functions
+    void ConsoleHandler::close()
+    {
+    this->_open = false;
+    }    
 
-    // Clear screen with aditional parameter that fills it up with color
     // assigns CLEARED vertex to screen
-    void ConsoleHandler::clear(const Color bg )
+    void ConsoleHandler::clear(const Color& bg )
     {        
-        for(size_t i = 0; i < _width * _height;++i)
+        for(size_t i = 0; i < _width * _height; ++i)
         {
-            Screen[i].setChar(_defaultChar);
+            Screen[i].setChar(' ');
             Screen[i].setBg(bg);
         }
     }
@@ -120,55 +147,54 @@ namespace op
         drawable.draw(*this);
     }
 
-    // Draws designed VertexArray class object
+    // THIS WILL BE REDESIGNED CAUSE ITS SHITTY AND UGLY AF
+    // Draws designed VertexArray class object vertex by vertex
     void ConsoleHandler::draw(const VertexArray& array)
     {
         if (!array.isEmpty())
         {
             for(int i = 0; i < array.getVertexCount();++i)
             {
-                Vector2f pos = array[i].getPosition();
+                Vector2i pos = array[i].getPosition();
 
                 // Casts Float position of vertex to Integer cause of console screen limits
                 // and substracts from it with view offset
-                int x = static_cast<int>(pos.x) - view.x;
-                int y = static_cast<int>(pos.y) - view.y;
+                int x = pos.x - view.x;
+                int y = pos.y - view.y;
 
                 // Checks if it fits screen position;
-                if( x >= 0 && x < _width && y >= 0 && y < _height)
+                //  || (array[i].getBg() == _defaultBgClear && array[i].getChar() == _defaultChar)
+                if((x >= 0 && x < _width && y >= 0 && y < _height) )
                 {
-                    size_t index = y + x * _height;
-                    // Saves Vertex to the ScreenBuffer
-                    Screen[index].setChar(array[i].getChar());
-                    Screen[index].setBg(array[i].getBg());
-                    Screen[index].setFg(array[i].getFg());
+                    size_t index = x + y * _width;
+                    // Copy ArrayVertex properties to ScreenVertices      
+                    Screen[index] = array[i];
                 }
             }
         }
     }
    
-    // Draws raw vertices from pointer to Vertex but function is pretty much the same as with VertexArray
+    // Draws from raw pointer to Vertex, looks for within vertices and draws it
     void ConsoleHandler::draw(const Vertex* vertices, unsigned count_vertices)
     {
         if (count_vertices > 0)
         {
             for(int i = 0; i < count_vertices;++i)
             {
-                Vector2f pos = vertices[i].getPosition();
+                Vector2i pos = vertices[i].getPosition();
 
                 // Casts Float position of vertex to Integer cause of console screen limits
                 // and substracts from it with view offset
-                int x = static_cast<int>(pos.x) - view.x;
-                int y = static_cast<int>(pos.y) - view.y;
+                int x = pos.x - view.x;
+                int y = pos.y - view.y;
 
                 // Checks if it fits screen position;
-                if( x >= 0 && x < _width && y >= 0 && y < _height)
+                if(y >= 0 && y < _height && x >= 0 && x < _width)
                 {
-                    size_t index = y + x * _height;
-                    // Saves Vertex to the ScreenBuffer
-                    Screen[index].setChar(vertices[i].getChar());
-                    Screen[index].setBg(vertices[i].getBg());
-                    Screen[index].setFg(vertices[i].getFg());
+                    size_t index = x + y * _width;
+                   
+                    // Alpha blending
+                    Screen[index].setBg(Color::blendColors(Screen[index].getBg(),vertices[i].getBg()));
                 }
             }
         }
@@ -177,121 +203,163 @@ namespace op
     void ConsoleHandler::display()
     {
         // size_x * size_y + number_of_endlines
-        f_buffer_size_newlines_debug = 0;
         f_buffer_size_debug = 0;
 
-        for(size_t x = 0; x < _width;++x)
+        // Drawing per row
+        for(size_t y = 0; y < _height;++y)
         {
-            f_buffer_size = 0;
-
-            for(size_t y = 0; y < _height;++y)
-            {
-                size_t index = y + x * _height;
-
-                char ch = Screen[index].getChar();
-                Color fg = Screen[index].getFg();
-                Color bg = Screen[index].getBg();
-                short code = 0;
-
-                    // Memory optimalization
-                    if((Screen[(index)-1].getBg() == bg && ch == ' ') ||
-                       (Screen[(index)-1].getFg() == fg && Screen[(index)-1].getBg() == bg))
-                    {
-                        code = 1; // in case of same color parameters or same bg argument and lack of char with fg (space)
-                    }
-                    else if(bg == _defaultBgClear && ch == _defaultChar) 
-                    {
-                        code = 2; // in case of cleared pixel that didn't change after clear
-                    }
-                    else if(ch == ' ' || Screen[(index)-1].getFg() == fg)
-                    {
-                        code = 3; // in case of same fg, we just need to print background
-                    }
-                    else if(Screen[(index)-1].getBg() == bg)
-                    {
-                        code = 4; // in case of same bg, we just need to print foreground
-                    }    
-
-                // add current pixel
-                FormatFastBuffer(ch,fg,bg,code);
-            }
-            // add endline
-            FormatFastBufferNextLine(x);
-            f_buffer_size_debug += f_buffer_size;
-            // Drawing per row
-            WriteFastBuffer();
+            fastFormatter(y); // TESTER 
         }
+
+        //WriteFastBuffer(); // TESTER
+
         // Debuging / Controling
         setDefaultPrintingMode();
-
         //debugFastBuffer(); 
+
     }    
 
-    // Fast Buffer Formater
-    void ConsoleHandler::FormatFastBuffer(const char c,const Color fg ,const Color bg,short code )
+    void ConsoleHandler::fastFormatter(size_t y)
     {
-        // code : 0,1,2,3,4: no opt, cleared pixel opt, full opt, bg opt, fg opt
-        // tmp buffer for single character ( to optimize )
-        char t_out[40];
+        int i = y * _width;
+        int cap = i + _width;
 
-        // CSI formating color;
-        if(code == 1)
+        // to save buffer position
+        ff_beg = ff_out;
+
+        for(i; i < cap; ++i)
         {
-            // Same parameters, optimization #1 tier
-            //snprintf(t_out,2,"%c",c);  
-            t_out[0] = c;
-            t_out[1] = '\0';
+            char c = Screen[i].getChar();
+            Color fg = Screen[i].getFg();
+            Color bg = Screen[i].getBg();
+
+            if((Screen[(i)-1].getBg() == bg && c == ' ') ||
+                (Screen[(i)-1].getFg() == fg && Screen[(i)-1].getBg() == bg))
+            {
+                // in case of same color parameters or same bg argument and lack of char with fg (space)
+                *ff_out++ = c;
+                *ff_out = '\0';
+            }
+            else if(bg == Color(0,0,0) && c == ' ') 
+            {
+                // in case of cleared pixel that didn't change after clear
+                *ff_out++ = '\033';
+                *ff_out++ = '[';
+                *ff_out++ = '0';
+                *ff_out++ = 'm';
+                *ff_out++ = c;
+                *ff_out = '\0';
+            }
+            else if(c == ' ' || Screen[(i)-1].getFg() == fg)
+            {
+                // in case of same fg, we just need to print background
+                ff_out += op::Core::formatBgOut(ff_out,bg,c);
+            }
+            else if(Screen[(i)-1].getBg() == bg)
+            {
+                // in case of same bg, we just need to print foreground
+                ff_out += op::Core::formatFgOut(ff_out,fg,c);
+            }
+            else 
+            {
+                // no optimalization
+                ff_out += op::Core::formatColorsOut(ff_out,fg,bg,c);
+            }  
         }
-        else if(code == 2)
-        {
-            t_out[0] = '\033';
-            t_out[1] = '[';
-            t_out[2] = '0';
-            t_out[3] = 'm';
-            t_out[4] = c;
-            t_out[5] = '\0';
-        } 
-        else if(code == 3) // Pixel mode, no char to print so no foregorund or same fg as before, optimization #2 tier 
-        {
-            snprintf(t_out,21,"\033[48;2;%d;%d;%dm%c",bg.r,bg.g,bg.b,c);
-        }
-        else if(code == 4) // same bg as before so just print fg parameter, optimization #3 tier (although it's effect is same as #2)
-        {
-            snprintf(t_out,21,"\033[38;2;%d;%d;%dm%c",fg.r,fg.g,fg.b,c);
-        }
-        else snprintf(t_out,40,"\033[38;2;%d;%d;%dm\033[48;2;%d;%d;%dm%c",fg.r,fg.g,fg.b,bg.r,bg.g,bg.b,c);  // full buffer used, no opt
-    
-        // increases buffer with every character_format
-        size_t size = strlen(t_out);
-        f_buffer_size  += size;
 
-        memcpy(ff_out+f_buffer_size-size,t_out,size+1);
-    }
+        ff_out += op::Core::formatLineOut(ff_out,y+2);
+        
+        // used to determine size of buffer by substracting its value with ff_beg
+        size_t ff_length = ff_out - ff_beg;
 
-    void ConsoleHandler::FormatFastBufferNextLine(size_t x)
-    {
-        char t_out[10]; // do 4 cyfr, max: 9999; 5 format + 4 cyfry + 1 null
+        // to restore buffer position
+        ff_out = ff_beg;
 
-        sprintf(t_out,"\033[%lu;1H",x+2);
+        // print row - end of process
+        fwrite(ff_out,sizeof(char),ff_length,stdout);
 
-        size_t size = strlen(t_out);
-        f_buffer_size += size;
-        f_buffer_size_newlines_debug += size;
-
-        memcpy(ff_out+f_buffer_size-size,t_out,size+1);
+        // debug
+        f_buffer_size_debug += ff_length;
     }
 
     // Fast Buffer Writer and cleaner
     void ConsoleHandler::WriteFastBuffer()
     {
-        fwrite(ff_out,sizeof(char),f_buffer_size,stdout);
+        // to save buffer position
+        lf_beg = lf_out;
+
+        int i;
+        int cap;
+
+        for(int y; y < _height;++y)
+        {      
+            i = y * _width;
+            cap = i + _width;
+
+            for(i; i < cap; ++i)
+            {
+                char c = Screen[i].getChar();
+                Color fg = Screen[i].getFg();
+                Color bg = Screen[i].getBg();
+
+                if((Screen[(i)-1].getBg() == bg && c == ' ') ||
+                    (Screen[(i)-1].getFg() == fg && Screen[(i)-1].getBg() == bg))
+                {
+                    // in case of same color parameters or same bg argument and lack of char with fg (space)
+                    *lf_out++ = c;
+                    *lf_out = '\0';
+                }
+                else if(bg == Color(0,0,0) && c == ' ') 
+                {
+                    // in case of cleared pixel that didn't change after clear
+                    *lf_out++ = '\033';
+                    *lf_out++ = '[';
+                    *lf_out++ = '0';
+                    *lf_out++ = 'm';
+                    *lf_out++ = c;
+                    *lf_out = '\0';
+                }
+                else if(c == ' ' || Screen[(i)-1].getFg() == fg)
+                {
+                    // in case of same fg, we just need to print background
+                    lf_out += op::Core::formatBgOut(lf_out,bg,c);
+                }
+                else if(Screen[(i)-1].getBg() == bg)
+                {
+                    // in case of same bg, we just need to print foreground
+                    lf_out += op::Core::formatFgOut(lf_out,fg,c);
+                }
+                else 
+                {
+                    // no optimalization
+                    lf_out += op::Core::formatColorsOut(lf_out,fg,bg,c);
+                }          
+            }
+
+            lf_out += op::Core::formatLineOut(lf_out,y+2);
+
+        }
+    
+        lf_out += op::Core::formatLineOut(lf_out,1);
+
+        // used to determine size of buffer by substracting its value with ff_beg
+        size_t lf_length = lf_out - lf_beg;
+
+        // to restore buffer position
+        lf_out = lf_beg;
+
+        // print row - end of process
+        fwrite(lf_out,sizeof(char),lf_length,stdout);
+
+        // debug
+        f_buffer_size_debug += lf_length;
     }
     
     void ConsoleHandler::debugFastBuffer()
     {
         double avg = f_buffer_size_debug / (_height*_width);
 
-        std::cout << "avarage size usage per 'pixel' in Bytes: " << avg << " \n" << "ff_out_buffer size: " << f_buffer_size_debug  << " B " << f_buffer_size_debug / 1024 << " KB " << (f_buffer_size_debug / (1024*1024)) << " MB " << std::endl;
+        std::cout << "avarage size usage per 'pixel' in Bytes: " << avg << " | " << "ff_out_buffer size: " << f_buffer_size_debug  << " B " << f_buffer_size_debug / 1024 << " KB " << (f_buffer_size_debug / (1024*1024)) << " MB " << std::endl;
     }
 
 } // namespace op

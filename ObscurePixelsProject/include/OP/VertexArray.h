@@ -3,6 +3,7 @@
 #include <vector>
 #include "Vertex.h"
 #include "Utility.h"
+#include "PrimitiveType.h"
 
 namespace op
 {

@@ -64,7 +64,7 @@ namespace op
 
             for (std::size_t i = 1; i < _vertices.size(); ++i)
             {
-                Vector2f position = _vertices[i].getPosition();
+                Vector2i position = _vertices[i].getPosition();
 
                 // Update left and right
                 if (position.x < left)
