@@ -7,3 +7,4 @@ i'll also add textures and simple shape transformations ^Y_^Y
 this small library supports alpha blending and in future antialiasing, supersampling
 i'll end this project with some simple 3d support and after FULL HD 1920x1080 characters will run in 60 fps with console font setsize=1, right now its around ~20-30 if im not wrong :DD
 it abuses CSI functionality builded in consoles yeeeey !
+ncurses worst nightmare, pure c++ only standard libraries no externals or windows.h or other shit like that  _._
