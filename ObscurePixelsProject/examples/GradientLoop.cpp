@@ -6,8 +6,8 @@ using namespace op;
 
 // standard console resolution with font 11 on fullscreen (f11) is 193 x 53
 
-const int size_x = 600;
-const int size_y = 300;
+const int size_x = 193;
+const int size_y = 53;
 
 int main()
 {
@@ -55,6 +55,8 @@ int main()
         
         console.display(); 
     }
+
+    delete[] shape;
 
     return 0;
 }
