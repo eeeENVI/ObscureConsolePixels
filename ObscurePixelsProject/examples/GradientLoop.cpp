@@ -22,7 +22,7 @@ int main()
     
 
     // 60 fps
-    ConsoleHandler console(size_x, size_y,60);
+    ConsoleHandler console(size_x, size_y);
     Clock clock;
 
     double dt = 0.0;
